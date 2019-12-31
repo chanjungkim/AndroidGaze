@@ -128,8 +128,8 @@ public class CameraSourcePreview extends ViewGroup {
 
     @Override
     protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
-        int width = 320;
-        int height = 240;
+        int width = 640;
+        int height = 370;
         if (mCameraSource != null) {
             Size size = mCameraSource.getPreviewSize();
             if (size != null) {
@@ -174,6 +174,7 @@ public class CameraSourcePreview extends ViewGroup {
         if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
             return false;
         }
+
         if (orientation == Configuration.ORIENTATION_PORTRAIT) {
             return true;
         }

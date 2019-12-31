@@ -2,7 +2,6 @@ package fyordan.androidgaze;
 
 import android.Manifest;
 import android.app.Activity;
-import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -13,25 +12,15 @@ import android.graphics.ColorMatrix;
 import android.graphics.ColorMatrixColorFilter;
 import android.graphics.ImageFormat;
 import android.graphics.Paint;
-import android.graphics.Point;
 import android.graphics.Rect;
-import android.graphics.RectF;
-import android.graphics.Typeface;
 import android.graphics.YuvImage;
-import android.hardware.Camera;
 import android.os.Build;
-import android.support.annotation.NonNull;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.util.Log;
 import android.util.SparseArray;
-import android.view.SurfaceHolder;
-import android.view.SurfaceView;
-import android.view.View;
-import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.TextView;
-import android.widget.Toast;
 
 import com.google.android.gms.vision.CameraSource;
 import com.google.android.gms.vision.Detector;
@@ -44,16 +33,13 @@ import com.google.android.gms.vision.face.Landmark;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.util.Arrays;
-import java.util.List;
 
 import static android.graphics.Bitmap.createBitmap;
 import static android.graphics.Bitmap.createScaledBitmap;
 
 public class MainActivity extends Activity {
-
     private static boolean DBG = BuildConfig.DEBUG; // provide normal log output only in debug version
 
     protected static FaceDetector faceDetector = null;
@@ -66,8 +52,7 @@ public class MainActivity extends Activity {
     protected CameraSourcePreview mPreview;
     protected GraphicOverlay mGraphicOverlay;
 
-    protected boolean DEBUG_MODE =
-            true;
+    protected boolean DEBUG_MODE = true;
 //            false;
     protected int eyeRegionWidth = 80;
     protected int eyeRegionHeight = 60;
@@ -158,7 +143,7 @@ public class MainActivity extends Activity {
         String TAG = "getPermissions";
         if (DBG) Log.v(TAG, "in getPermissions()");
         if (Build.VERSION.SDK_INT >= 23) {            // need to ask at runtime as of Android 6.0
-            String sPermissions[] = new String[2];    // space for possible permission strings
+            String[] sPermissions = new String[2];    // space for possible permission strings
             int nPermissions = 0;    // count of permissions to be asked for
             if (bUseCameraFlag) {    // protection level: dangerous
                 if (checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED)
@@ -370,20 +355,24 @@ public class MainActivity extends Activity {
                     int eye_region_left = (int)landmark.getPosition().x-eyeRegionWidth/2;
                     int eye_region_top = (int)landmark.getPosition().y-eyeRegionHeight/2;
 
-                    mEyeBitmap = toGrayscale(
-                            createBitmap(mBitmap,
-                                    eye_region_left,
-                                    eye_region_top,
-                                    eyeRegionWidth, eyeRegionHeight));
+                    if(eye_region_left < 0 || eye_region_top < 0){
+                        return;
+                    }else {
+                        mEyeBitmap = toGrayscale(
+                                createBitmap(mBitmap,
+                                        eye_region_left,
+                                        eye_region_top,
+                                        eyeRegionWidth, eyeRegionHeight));
 
-                    mEyeBitmap = createScaledBitmap(mEyeBitmap,
-                            eyeRegionWidth/mDownSampleScale,
-                            eyeRegionHeight/mDownSampleScale,
-                            true);
+                        mEyeBitmap = createScaledBitmap(mEyeBitmap,
+                                eyeRegionWidth/mDownSampleScale,
+                                eyeRegionHeight/mDownSampleScale,
+                                true);
 
-                    iris_pixel = calculateEyeCenter(mEyeBitmap, mGradThresh, mDThresh);
+                        iris_pixel = calculateEyeCenter(mEyeBitmap, mGradThresh, mDThresh);
 //                    if (mBitmapGradientMag != null)  canvas.drawBitmap(mBitmapGradientMag, 0, 0, paint);
-                    //canvas.drawBitmap(eyeBitmap, 0, 0, paint);
+                        //canvas.drawBitmap(eyeBitmap, 0, 0, paint);
+                    }
                 }
             }
             if (mEyeBitmap != null && DEBUG_MODE) {
@@ -419,7 +408,7 @@ public class MainActivity extends Activity {
             }
         }
 
-        protected int calculateEyeCenter(Bitmap eyeMap, double gradientThreshold, int d_thresh) {
+        int calculateEyeCenter(Bitmap eyeMap, double gradientThreshold, int d_thresh) {
             // TODO(fyordan): Shouldn't use mImageWidth and mImageHeight, but grayData dimensions.
             // Calculate gradients.
             // Ignore edges of image to not deal with boundaries.
